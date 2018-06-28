@@ -1,0 +1,143 @@
+-- Question 1 --
+
+SELECT *
+ FROM survey
+ LIMIT 10;
+
+--Question 2 --
+
+SELECT question AS 'Question', COUNT (DISTINCT user_id) AS 'Question Total'
+ FROM survey
+ GROUP BY 1
+ ORDER BY 1 ASC;
+
+--Question 4 --
+
+SELECT *
+FROM quiz
+LIMIT 5;
+
+SELECT *
+FROM home_try_on
+LIMIT 5;
+
+SELECT * 
+FROM purchase
+LIMIT 5;
+
+--Question 5 --
+
+SELECT Quiz.user_id, CASE WHEN Trial.user_id IS NOT NULL THEN 'True' ELSE 'False' END AS is_home_try_on, Trial.number_of_pairs, CASE WHEN Purchase.user_id IS NOT NULL THEN 'True' ELSE 'False' END AS 'is_purchase'
+FROM quiz AS 'Quiz'
+LEFT JOIN home_try_on AS 'Trial' ON Quiz.user_id=Trial.user_id
+LEFT JOIN purchase AS 'Purchase' ON Quiz.user_id=Purchase.user_id
+LIMIT 10;
+
+--Redo as numerical and compare 3 and 5 --
+
+WITH funnels AS (SELECT Quiz.user_id, CASE WHEN Trial.user_id IS NOT NULL THEN '1' ELSE '0' END AS is_home_try_on, Trial.number_of_pairs, CASE WHEN Purchase.user_id IS NOT NULL THEN '1' ELSE '0' END AS 'is_purchase'
+FROM quiz AS 'Quiz'
+LEFT JOIN home_try_on AS 'Trial' ON Quiz.user_id=Trial.user_id
+LEFT JOIN purchase AS 'Purchase' ON Quiz.user_id=Purchase.user_id)
+SELECT funnels.number_of_pairs, 1.0 * SUM(funnels.is_purchase)/SUM(funnels.is_home_try_on) AS 'Purchase_to_Try'
+FROM funnels
+WHERE funnels.number_of_pairs IS NOT NULL
+GROUP BY 1;
+
+--Top Quiz Color --
+
+SELECT COUNT (quiz.user_id), quiz.color
+FROM quiz
+GROUP BY 2
+ORDER BY 1 DESC;
+
+--Top Purchase Color --
+
+SELECT COUNT (purchase.user_id), purchase.color
+FROM purchase
+GROUP BY 2
+ORDER BY 1 DESC;
+
+--Difference of A and B for those who first selected Womens Style --
+
+WITH funnels AS (SELECT Quiz.user_id, CASE WHEN Trial.user_id IS NOT NULL THEN '1' ELSE '0' END AS is_home_try_on, Trial.number_of_pairs, quiz.style, CASE WHEN Purchase.user_id IS NOT NULL THEN '1' ELSE '0' END AS 'is_purchase'
+FROM quiz AS 'Quiz'
+LEFT JOIN home_try_on AS 'Trial' ON Quiz.user_id=Trial.user_id
+LEFT JOIN purchase AS 'Purchase' ON Quiz.user_id=Purchase.user_id)
+
+SELECT funnels.number_of_pairs, 1.0 * SUM(funnels.is_purchase)/SUM(funnels.is_home_try_on) AS 'Purchase_to_Try'
+FROM funnels
+WHERE funnels.Style = 'Women''s Styles' and funnels.number_of_pairs IS NOT NULL
+GROUP BY 1;
+
+-- Difference of A and B for those who first selected Mens Style --
+
+WITH funnels AS (SELECT Quiz.user_id, CASE WHEN Trial.user_id IS NOT NULL THEN '1' ELSE '0' END AS is_home_try_on, Trial.number_of_pairs, quiz.style, CASE WHEN Purchase.user_id IS NOT NULL THEN '1' ELSE '0' END AS 'is_purchase'
+FROM quiz AS 'Quiz'
+LEFT JOIN home_try_on AS 'Trial' ON Quiz.user_id=Trial.user_id
+LEFT JOIN purchase AS 'Purchase' ON Quiz.user_id=Purchase.user_id)
+
+SELECT funnels.number_of_pairs, 1.0 * SUM(funnels.is_purchase)/SUM(funnels.is_home_try_on) AS 'Purchase_to_Try'
+FROM funnels
+WHERE funnels.Style = 'Men''s Styles' and funnels.number_of_pairs IS NOT NULL
+GROUP BY 1;
+
+-- Compare total funnel for Men --
+
+WITH funnels AS (SELECT Quiz.user_id, CASE WHEN Trial.user_id IS NOT NULL THEN '1' ELSE '0' END AS is_home_try_on, Trial.number_of_pairs, quiz.style, CASE WHEN Purchase.user_id IS NOT NULL THEN '1' ELSE '0' END AS 'is_purchase'
+FROM quiz AS 'Quiz'
+LEFT JOIN home_try_on AS 'Trial' ON Quiz.user_id=Trial.user_id
+LEFT JOIN purchase AS 'Purchase' ON Quiz.user_id=Purchase.user_id)
+
+SELECT COUNT (funnels.user_id), SUM (funnels.is_home_try_on) , SUM (funnels.is_purchase)
+FROM funnels
+WHERE funnels.Style = 'Men''s Styles';
+
+-- Compare total funnel for Women --
+
+WITH funnels AS (SELECT Quiz.user_id, CASE WHEN Trial.user_id IS NOT NULL THEN '1' ELSE '0' END AS is_home_try_on, Trial.number_of_pairs, quiz.style, CASE WHEN Purchase.user_id IS NOT NULL THEN '1' ELSE '0' END AS 'is_purchase'
+FROM quiz AS 'Quiz'
+LEFT JOIN home_try_on AS 'Trial' ON Quiz.user_id=Trial.user_id
+LEFT JOIN purchase AS 'Purchase' ON Quiz.user_id=Purchase.user_id)
+
+SELECT COUNT (funnels.user_id), SUM (funnels.is_home_try_on) , SUM (funnels.is_purchase)
+FROM funnels
+WHERE funnels.Style = 'Women''s Styles';
+
+-- Compare total funnel for Skip --
+
+WITH funnels AS (SELECT Quiz.user_id, CASE WHEN Trial.user_id IS NOT NULL THEN '1' ELSE '0' END AS is_home_try_on, Trial.number_of_pairs, quiz.style, CASE WHEN Purchase.user_id IS NOT NULL THEN '1' ELSE '0' END AS 'is_purchase'
+FROM quiz AS 'Quiz'
+LEFT JOIN home_try_on AS 'Trial' ON Quiz.user_id=Trial.user_id
+LEFT JOIN purchase AS 'Purchase' ON Quiz.user_id=Purchase.user_id)
+
+SELECT COUNT (funnels.user_id), SUM (funnels.is_home_try_on), SUM (funnels.is_purchase)
+FROM funnels
+WHERE funnels.Style = 'I''m not sure. Let''s skip it.';
+
+
+-- Did not use: Average price per trial --
+
+With funnels AS (SELECT Quiz.user_id, CASE WHEN Trial.user_id IS NOT NULL THEN '1' ELSE '0' END AS is_home_try_on, Trial.number_of_pairs, CASE WHEN Purchase.user_id IS NOT NULL THEN '1' ELSE '0' END AS 'is_purchase', Purchase.price
+FROM quiz AS 'Quiz'
+LEFT JOIN home_try_on AS 'Trial' ON Quiz.user_id=Trial.user_id
+LEFT JOIN purchase AS 'Purchase' ON Quiz.user_id=Purchase.user_id)
+
+SELECT funnels.number_of_pairs, AVG(funnels.price)
+FROM funnels
+WHERE funnels.number_of_pairs IS NOT NULL AND funnels.price IS NOT NULL
+GROUP BY 1;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
